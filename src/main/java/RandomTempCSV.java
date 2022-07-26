@@ -6,8 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Logger;
+
+import static java.util.stream.IntStream.iterate;
 
 public class RandomTempCSV {
+
+    // Metodos auxiliares para convertir a formato csv y crear registros
+
     private static void exportCSV(List<Temperatura> datos, String name, String header) throws IOException {
         FileOutputStream csvOutputFile = new FileOutputStream(name + ".csv");
         csvOutputFile.write(header.getBytes());
@@ -22,32 +28,66 @@ public class RandomTempCSV {
         return temperatura.toString();
     }
 
-    public static void main(String[] args) throws IOException {
-
-        Random random = new Random();
-
-        String[] provincias = new String[]{"Alava",
-                "Albacete", "Alicante", "Almería", "Asturias", "Avila", "Badajoz", "Barcelona", "Burgos", "Cáceres",
-                "Cádiz", "Cantabria", "Castellón", "Ciudad Real", "Córdoba", "La Coruña", "Cuenca", "Gerona", "Granada", "Guadalajara",
-                "Guipúzcoa", "Huelva", "Huesca", "Islas Baleares", "Jaén", "León", "Lérida", "Lugo", "Madrid", "Málaga", "Murcia", "Navarra",
-                "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Segovia", "Sevilla", "Soria", "Tarragona",
-                "Santa Cruz de Tenerife", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya", "Zamora", "Zaragoza"};
-
-        long minDay = LocalDate.of(1970, 1, 1).toEpochDay();
-        long maxDay = LocalDate.of(2022, 1, 1).toEpochDay();
-        long maxTemp = 100;
-        long minTemp = -100;
-        List<Temperatura> temperaturas = new ArrayList<>();
-
-        for (int i = 0; i < 1000; i++) {
-            Temperatura temperatura = new Temperatura();
+    private static void addTemperature(String[] provincias, Random random, long minDay, long maxDay,
+                                       long maxTempFallo, long minTempFallo, long registros,
+                                       int totalProvincias, List<Temperatura> temperaturas) {
+        iterate(0, i -> i < registros, i -> i + 1).mapToObj(i -> new Temperatura()).forEach(temperatura -> {
             long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
             temperatura.setFecha(LocalDate.ofEpochDay(randomDay));
-            temperatura.setTemperatura(random.nextLong(maxTemp - minTemp) + minTemp);
-            temperatura.setProvincia(provincias[random.nextInt(provincias.length)]);
+            temperatura.setTemperatura(random.nextLong(maxTempFallo - minTempFallo) + minTempFallo);
+            temperatura.setProvincia(provincias[random.nextInt(totalProvincias)]);
             temperaturas.add(temperatura);
-        }
-
-        exportCSV(temperaturas, "prueba", "Provincia;Temperatura;Fecha\n");
+        });
     }
+
+    public static void main(String[] args) throws IOException {
+
+        // constantes
+        final Logger log = Logger.getLogger(String.valueOf(RandomTempCSV.class));
+        String[] provincias = new String[]{"Alava",
+                "Albacete", "Alicante", "Almeria", "Asturias", "Avila", "Badajoz", "Barcelona", "Burgos", "Caceres",
+                "Cadiz", "Cantabria", "Castellon", "Ciudad Real", "Cordoba", "La Coruna", "Cuenca", "Gerona", "Granada",
+                "Guadalajara", "Guipuzcoa", "Huelva", "Huesca", "Islas Baleares", "Jaen",
+                "Leon", "Lerida", "Lugo", "Madrid", "Malaga", "Murcia", "Navarra",
+                "Orense", "Palencia", "Las Palmas", "Pontevedra", "La Rioja", "Salamanca", "Segovia", "Sevilla",
+                "Soria", "Tarragona", "Santa Cruz de Tenerife", "Teruel", "Toledo", "Valencia", "Valladolid", "Vizcaya",
+                "Zamora", "Zaragoza"};
+
+        Random random = new Random();
+        long minDay = LocalDate.of(2000, 1, 1).toEpochDay();
+        long maxDay = LocalDate.of(2022, 1, 1).toEpochDay();
+        long maxTemp = 50;
+        long minTemp = -20;
+        long maxTempFallo = 100;
+        long minTempFallo = -100;
+        long registros = 1000;
+        long registrosFallo = 50;
+        int totalProvincias = provincias.length;
+
+        List<Temperatura> temperaturas = new ArrayList<>();
+
+        // introducimos las correctas (registros)
+        addTemperature(provincias, random, minDay, maxDay, maxTemp, minTemp, registros,
+                totalProvincias, temperaturas);
+
+        log.info("Primeras " + registros + " completados");
+
+        // creamos la mitad de las incorrectas negativamente
+        addTemperature(provincias, random, minDay, maxDay, minTemp, minTempFallo, registrosFallo / 2,
+                totalProvincias, temperaturas);
+
+        log.info("Registros: " + registrosFallo / 2 + " incorrectos completados");
+
+        // creamos la mitad de las incorrectas positivamente
+        addTemperature(provincias, random, minDay, maxDay, maxTempFallo, maxTemp, registrosFallo / 2,
+                totalProvincias, temperaturas);
+
+        log.info("Registros: " + registrosFallo / 2 + " incorrectos completados");
+
+        // obtencion de csv
+        exportCSV(temperaturas, "prueba", "Provincia;Temperatura;Fecha\n");
+
+        log.info("CSV completado");
+    }
+
 }
