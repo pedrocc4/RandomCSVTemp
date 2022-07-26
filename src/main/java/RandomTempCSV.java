@@ -52,13 +52,13 @@ public class RandomTempCSV {
                 "Zamora", "Zaragoza"};
 
         Random random = new Random();
-        long minDay = LocalDate.of(2000, 1, 1).toEpochDay();
+        long minDay = LocalDate.of(2010, 1, 1).toEpochDay();
         long maxDay = LocalDate.of(2022, 1, 1).toEpochDay();
         long maxTemp = 50;
         long minTemp = -20;
         long maxTempFallo = 100;
         long minTempFallo = -100;
-        long registros = 1000;
+        long registros = 10000;
         long registrosFallo = 50;
         int totalProvincias = provincias.length;
 
