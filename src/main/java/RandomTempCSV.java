@@ -2,9 +2,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
@@ -83,6 +81,8 @@ public class RandomTempCSV {
                 totalProvincias, temperaturas);
 
         log.info("Registros: " + registrosFallo / 2 + " incorrectos completados");
+
+        Collections.shuffle(temperaturas);
 
         // obtencion de csv
         exportCSV(temperaturas, "prueba", "Provincia;Temperatura;Fecha\n");
